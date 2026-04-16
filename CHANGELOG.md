@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-04-16
+
+### 🚀 Features
+
+- Add Venice AI provider support
+- Remove Anthropic setup token requirement
+
 ## [0.2.0] - 2026-03-20
 
 ### 🚀 Features
