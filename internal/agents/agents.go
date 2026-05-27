@@ -26,18 +26,8 @@ func ListAgents() ([]Agent, error) {
 	return response.Agents, nil
 }
 
-// CreateAgent creates a new agent with the specified parameters.
-func CreateAgent(name, description, vibe, emoji, templateID string, skillCids, secretIds []string) (*CreateAgentResponse, error) {
-	body := CreateAgentBody{
-		Name:        name,
-		Description: description,
-		Vibe:        vibe,
-		Emoji:       emoji,
-		SkillCids:   skillCids,
-		SecretIds:   secretIds,
-		TemplateID:  templateID,
-	}
-
+// CreateAgent creates a new agent from the provided request body.
+func CreateAgent(body CreateAgentBody) (*CreateAgentResponse, error) {
 	var response CreateAgentResponse
 	err := doJSON(http.MethodPost, "", body, &response)
 	if err != nil {
@@ -45,6 +35,24 @@ func CreateAgent(name, description, vibe, emoji, templateID string, skillCids, s
 	}
 
 	formattedJSON, err := json.MarshalIndent(response, "", "    ")
+	if err != nil {
+		return nil, errors.New("failed to format JSON")
+	}
+
+	fmt.Println(string(formattedJSON))
+
+	return &response, nil
+}
+
+// ListEngines retrieves the agent engines enabled for this deployment.
+func ListEngines() (*EnginesResponse, error) {
+	var response EnginesResponse
+	err := doJSON(http.MethodGet, "/engines", nil, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	formattedJSON, err := json.MarshalIndent(response.Engines, "", "    ")
 	if err != nil {
 		return nil, errors.New("failed to format JSON")
 	}

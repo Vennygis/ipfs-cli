@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- Support Hermes (and superbuilder) agents: `agents create --engine <openclaw|hermes|superbuilder>`, plus `--user-name`/`--user-email` and `--channels` (JSON) for configuring channels at creation
+- Add `agents engines` to list the agent engines enabled for the deployment
+- Surface each agent's `engine` in `agents list`/`get`, and per-engine version data in `agents versions`
+- `agents channels configure`: add `--enabled` and `--skip-restart`
+- `agents tasks create`/`update`: add `--skill` to scope skills to a task
 - Add `agents templates refs` and `agents templates search-refs` to list/search branches and tags for a repo
 - Support submitting/updating templates from a subdirectory via `--path` (monorepos)
 - Support `--name`/`--slug` overrides when submitting templates

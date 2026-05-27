@@ -733,6 +733,10 @@ func main() {
 							Name:  "emoji",
 							Usage: "Agent emoji",
 						},
+						&cli.StringFlag{
+							Name:  "engine",
+							Usage: "Container engine: openclaw (default), hermes, or superbuilder",
+						},
 						&cli.StringSliceFlag{
 							Name:  "skill",
 							Usage: "Skill CIDs to attach (can be specified multiple times)",
@@ -746,16 +750,39 @@ func main() {
 							Aliases: []string{"t"},
 							Usage:   "Template ID to deploy from (uses template snapshot, skills, and defaults)",
 						},
+						&cli.StringFlag{
+							Name:  "user-name",
+							Usage: "Owner display name (written into workspace/USER.md)",
+						},
+						&cli.StringFlag{
+							Name:  "user-email",
+							Usage: "Owner email (written into workspace/USER.md)",
+						},
+						&cli.StringFlag{
+							Name:  "channels",
+							Usage: `Channel config as JSON (for Hermes agents; set at creation to avoid a restart), e.g. '{"telegram":{"botToken":"...","dmPolicy":"open"}}'`,
+						},
 					},
 					Action: func(ctx context.Context, cmd *cli.Command) error {
-						name := cmd.String("name")
-						description := cmd.String("description")
-						vibe := cmd.String("vibe")
-						emoji := cmd.String("emoji")
-						skills := cmd.StringSlice("skill")
-						secrets := cmd.StringSlice("secret")
-						template := cmd.String("template")
-						_, err := agents.CreateAgent(name, description, vibe, emoji, template, skills, secrets)
+						body := agents.CreateAgentBody{
+							Name:        cmd.String("name"),
+							Description: cmd.String("description"),
+							Vibe:        cmd.String("vibe"),
+							Emoji:       cmd.String("emoji"),
+							Engine:      cmd.String("engine"),
+							SkillCids:   cmd.StringSlice("skill"),
+							SecretIds:   cmd.StringSlice("secret"),
+							TemplateID:  cmd.String("template"),
+							UserName:    cmd.String("user-name"),
+							UserEmail:   cmd.String("user-email"),
+						}
+						if ch := cmd.String("channels"); ch != "" {
+							if !json.Valid([]byte(ch)) {
+								return errors.New("--channels must be a valid JSON object")
+							}
+							body.Channels = json.RawMessage(ch)
+						}
+						_, err := agents.CreateAgent(body)
 						return err
 					},
 				},
@@ -1185,6 +1212,14 @@ Examples:
 									Name:  "allow-from",
 									Usage: "Allowed user IDs/phone numbers",
 								},
+								&cli.BoolFlag{
+									Name:  "enabled",
+									Usage: "Enable or disable the channel",
+								},
+								&cli.BoolFlag{
+									Name:  "skip-restart",
+									Usage: "Skip restarting the agent after configuring",
+								},
 							},
 							Action: func(ctx context.Context, cmd *cli.Command) error {
 								agentID := cmd.Args().First()
@@ -1199,7 +1234,13 @@ Examples:
 								appToken := cmd.String("app-token")
 								dmPolicy := cmd.String("dm-policy")
 								allowFrom := cmd.StringSlice("allow-from")
-								return agents.ConfigureChannel(agentID, channel, botToken, appToken, dmPolicy, allowFrom)
+								var enabled *bool
+								if cmd.IsSet("enabled") {
+									v := cmd.Bool("enabled")
+									enabled = &v
+								}
+								skipRestart := cmd.Bool("skip-restart")
+								return agents.ConfigureChannel(agentID, channel, botToken, appToken, dmPolicy, allowFrom, enabled, skipRestart)
 							},
 						},
 						{
@@ -1442,6 +1483,10 @@ Examples:
 									Usage: "Session target: main or isolated",
 									Value: "main",
 								},
+								&cli.StringSliceFlag{
+									Name:  "skill",
+									Usage: "Skill CIDs to make available to the task (can be specified multiple times)",
+								},
 							},
 							Action: func(ctx context.Context, cmd *cli.Command) error {
 								agentID := cmd.Args().First()
@@ -1526,6 +1571,7 @@ Examples:
 									Enabled:     !cmd.Bool("disabled"),
 									Schedule:    schedule,
 									Payload:     payload,
+									Skills:      cmd.StringSlice("skill"),
 								}
 
 								if session := cmd.String("session"); session != "" {
@@ -1598,6 +1644,10 @@ Examples:
 									Name:  "timeout",
 									Usage: "Timeout in seconds",
 								},
+								&cli.StringSliceFlag{
+									Name:  "skill",
+									Usage: "Skill CIDs to make available to the task (can be specified multiple times)",
+								},
 							},
 							Action: func(ctx context.Context, cmd *cli.Command) error {
 								agentID := cmd.Args().First()
@@ -1610,6 +1660,10 @@ Examples:
 								}
 
 								body := agents.UpdateTaskBody{}
+
+								if cmd.IsSet("skill") {
+									body.Skills = cmd.StringSlice("skill")
+								}
 
 								if name := cmd.String("name"); name != "" {
 									body.Name = name
@@ -2407,6 +2461,14 @@ Examples:
 							return errors.New("no agent ID provided")
 						}
 						_, err := agents.GetAvailableVersions(agentID)
+						return err
+					},
+				},
+				{
+					Name:  "engines",
+					Usage: "List the agent engines enabled for this deployment",
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						_, err := agents.ListEngines()
 						return err
 					},
 				},
