@@ -592,8 +592,11 @@ type TemplateDetailResponse struct {
 
 // SubmitTemplateBody is the request body for validating, submitting, or updating a template.
 type SubmitTemplateBody struct {
-	GitURL string `json:"gitUrl,omitempty"`
-	Branch string `json:"branch,omitempty"`
+	GitURL       string `json:"gitUrl,omitempty"`
+	Ref          string `json:"ref,omitempty"`
+	Path         string `json:"path,omitempty"`
+	NameOverride string `json:"nameOverride,omitempty"`
+	SlugOverride string `json:"slugOverride,omitempty"`
 }
 
 // ValidateTemplateResponse is the response from validating a git repo for template submission.
@@ -628,6 +631,30 @@ type BranchesBody struct {
 // BranchesResponse is the response from listing branches.
 type BranchesResponse struct {
 	Branches []string `json:"branches"`
+}
+
+// RefsBody is the request body for listing repo branches and tags.
+type RefsBody struct {
+	GitURL string `json:"gitUrl"`
+}
+
+// RefsResponse is the response from listing repo branches and tags.
+type RefsResponse struct {
+	Branches      []string `json:"branches"`
+	Tags          []string `json:"tags"`
+	DefaultBranch *string  `json:"defaultBranch"`
+}
+
+// SearchRefsBody is the request body for searching repo branches and tags.
+type SearchRefsBody struct {
+	GitURL string `json:"gitUrl"`
+	Search string `json:"search"`
+}
+
+// SearchRefsResponse is the response from searching repo branches and tags.
+type SearchRefsResponse struct {
+	Branches []string `json:"branches"`
+	Tags     []string `json:"tags"`
 }
 
 // --- Config ---

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 
 	"pinata/internal/config"
@@ -21,11 +22,8 @@ func doTemplatesJSON(method, path string, body interface{}, result interface{}) 
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		var errResp ErrorResponse
-		if decodeErr := json.NewDecoder(resp.Body).Decode(&errResp); decodeErr == nil && errResp.Error != "" {
-			return fmt.Errorf("server error: %s", errResp.Error)
-		}
-		return fmt.Errorf("server returned status %d", resp.StatusCode)
+		raw, _ := io.ReadAll(resp.Body)
+		return apiErrorMessage(resp.StatusCode, raw)
 	}
 
 	if result != nil {
@@ -103,11 +101,8 @@ func ListTemplatesBySubmitter() (*TemplateListResponse, error) {
 }
 
 // ValidateTemplate validates a git repo for template submission.
-func ValidateTemplate(gitURL, branch string) (*ValidateTemplateResponse, error) {
-	body := SubmitTemplateBody{GitURL: gitURL}
-	if branch != "" {
-		body.Branch = branch
-	}
+func ValidateTemplate(gitURL, ref, path string) (*ValidateTemplateResponse, error) {
+	body := SubmitTemplateBody{GitURL: gitURL, Ref: ref, Path: path}
 
 	var response ValidateTemplateResponse
 	err := doTemplatesJSON(http.MethodPost, "/validate", body, &response)
@@ -126,10 +121,13 @@ func ValidateTemplate(gitURL, branch string) (*ValidateTemplateResponse, error) 
 }
 
 // SubmitTemplate submits a new template from a git repo URL.
-func SubmitTemplate(gitURL, branch string) (*SubmitTemplateResponse, error) {
-	body := SubmitTemplateBody{GitURL: gitURL}
-	if branch != "" {
-		body.Branch = branch
+func SubmitTemplate(gitURL, ref, path, nameOverride, slugOverride string) (*SubmitTemplateResponse, error) {
+	body := SubmitTemplateBody{
+		GitURL:       gitURL,
+		Ref:          ref,
+		Path:         path,
+		NameOverride: nameOverride,
+		SlugOverride: slugOverride,
 	}
 
 	var response SubmitTemplateResponse
@@ -149,13 +147,14 @@ func SubmitTemplate(gitURL, branch string) (*SubmitTemplateResponse, error) {
 }
 
 // UpdateTemplate updates an existing template submission by re-pulling from the repo.
-func UpdateTemplate(templateID, gitURL, branch string) (*SubmitTemplateResponse, error) {
-	body := SubmitTemplateBody{}
-	if gitURL != "" {
-		body.GitURL = gitURL
-	}
-	if branch != "" {
-		body.Branch = branch
+// ref is required by the API; gitUrl falls back to the existing repo when omitted.
+func UpdateTemplate(templateID, gitURL, ref, path, nameOverride, slugOverride string) (*SubmitTemplateResponse, error) {
+	body := SubmitTemplateBody{
+		GitURL:       gitURL,
+		Ref:          ref,
+		Path:         path,
+		NameOverride: nameOverride,
+		SlugOverride: slugOverride,
 	}
 
 	var response SubmitTemplateResponse
@@ -198,6 +197,46 @@ func ListBranches(gitURL string) (*BranchesResponse, error) {
 
 	var response BranchesResponse
 	err := doTemplatesJSON(http.MethodPost, "/branches", body, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	formattedJSON, err := json.MarshalIndent(response, "", "    ")
+	if err != nil {
+		return nil, errors.New("failed to format JSON")
+	}
+
+	fmt.Println(string(formattedJSON))
+
+	return &response, nil
+}
+
+// ListRefs lists branches and tags (with the default branch) for a public git repository.
+func ListRefs(gitURL string) (*RefsResponse, error) {
+	body := RefsBody{GitURL: gitURL}
+
+	var response RefsResponse
+	err := doTemplatesJSON(http.MethodPost, "/refs", body, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	formattedJSON, err := json.MarshalIndent(response, "", "    ")
+	if err != nil {
+		return nil, errors.New("failed to format JSON")
+	}
+
+	fmt.Println(string(formattedJSON))
+
+	return &response, nil
+}
+
+// SearchRefs searches branches and tags by name for a public git repository.
+func SearchRefs(gitURL, search string) (*SearchRefsResponse, error) {
+	body := SearchRefsBody{GitURL: gitURL, Search: search}
+
+	var response SearchRefsResponse
+	err := doTemplatesJSON(http.MethodPost, "/refs/search", body, &response)
 	if err != nil {
 		return nil, err
 	}
