@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,11 +21,11 @@ import (
 	"pinata/internal/keys"
 	uploads "pinata/internal/upload"
 
-	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v3"
 )
 
 func main() {
-	app := &cli.App{
+	app := &cli.Command{
 		Name:  "pinata",
 		Usage: "The official Pinata IPFS CLI! To get started make an API key at https://app.pinata.cloud/keys, then authorize the CLI with the auth command with your JWT",
 		Commands: []*cli.Command{
@@ -33,7 +34,7 @@ func main() {
 				Aliases:   []string{"a"},
 				Usage:     "Authorize the CLI with your Pinata JWT",
 				ArgsUsage: "[your Pinata JWT]",
-				Action: func(ctx *cli.Context) error {
+				Action: func(ctx context.Context, cmd *cli.Command) error {
 					err := auth.SaveJWT()
 					return err
 				},
@@ -66,12 +67,12 @@ func main() {
 						Usage:   "Specify the network (public or private). Uses default if not specified",
 					},
 				},
-				Action: func(ctx *cli.Context) error {
-					filePath := ctx.Args().First()
-					groupId := ctx.String("group")
-					name := ctx.String("name")
-					verbose := ctx.Bool("verbose")
-					network := ctx.String("network")
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					filePath := cmd.Args().First()
+					groupId := cmd.String("group")
+					name := cmd.String("name")
+					verbose := cmd.Bool("verbose")
+					network := cmd.String("network")
 					if filePath == "" {
 						return errors.New("no file path provided")
 					}
@@ -83,7 +84,7 @@ func main() {
 				Name:    "groups",
 				Aliases: []string{"g"},
 				Usage:   "Interact with file groups",
-				Subcommands: []*cli.Command{
+				Commands: []*cli.Command{
 					{
 						Name:      "create",
 						Aliases:   []string{"c"},
@@ -96,9 +97,9 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							name := ctx.Args().First()
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							name := cmd.Args().First()
+							network := cmd.String("network")
 							if name == "" {
 								return errors.New("Group name required")
 							}
@@ -133,11 +134,11 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							amount := ctx.String("amount")
-							name := ctx.String("name")
-							token := ctx.String("token")
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							amount := cmd.String("amount")
+							name := cmd.String("name")
+							token := cmd.String("token")
+							network := cmd.String("network")
 							_, err := groups.ListGroups(amount, name, token, network)
 							return err
 						},
@@ -159,10 +160,10 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							groupId := ctx.Args().First()
-							name := ctx.String("name")
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							groupId := cmd.Args().First()
+							name := cmd.String("name")
+							network := cmd.String("network")
 							if groupId == "" {
 								return errors.New("no ID provided")
 							}
@@ -182,9 +183,9 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							groupId := ctx.Args().First()
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							groupId := cmd.Args().First()
+							network := cmd.String("network")
 							if groupId == "" {
 								return errors.New("no ID provided")
 							}
@@ -204,9 +205,9 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							groupId := ctx.Args().First()
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							groupId := cmd.Args().First()
+							network := cmd.String("network")
 							if groupId == "" {
 								return errors.New("no ID provided")
 							}
@@ -226,10 +227,10 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							groupId := ctx.Args().First()
-							fileId := ctx.Args().Get(1)
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							groupId := cmd.Args().First()
+							fileId := cmd.Args().Get(1)
+							network := cmd.String("network")
 							if groupId == "" {
 								return errors.New("no group id provided")
 							}
@@ -252,10 +253,10 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							groupId := ctx.Args().First()
-							fileId := ctx.Args().Get(1)
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							groupId := cmd.Args().First()
+							fileId := cmd.Args().Get(1)
+							network := cmd.String("network")
 							if groupId == "" {
 								return errors.New("no group id provided")
 							}
@@ -272,7 +273,7 @@ func main() {
 				Name:    "files",
 				Aliases: []string{"f"},
 				Usage:   "Interact with your files on Pinata",
-				Subcommands: []*cli.Command{
+				Commands: []*cli.Command{
 					{
 						Name:      "delete",
 						Aliases:   []string{"d"},
@@ -285,9 +286,9 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							fileId := ctx.Args().First()
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							fileId := cmd.Args().First()
+							network := cmd.String("network")
 							if fileId == "" {
 								return errors.New("no file ID provided")
 							}
@@ -307,9 +308,9 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							fileId := ctx.Args().First()
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							fileId := cmd.Args().First()
+							network := cmd.String("network")
 							if fileId == "" {
 								return errors.New("no CID provided")
 							}
@@ -334,10 +335,10 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							fileId := ctx.Args().First()
-							name := ctx.String("name")
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							fileId := cmd.Args().First()
+							name := cmd.String("name")
+							network := cmd.String("network")
 							if fileId == "" {
 								return errors.New("no ID provided")
 							}
@@ -396,17 +397,17 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							amount := ctx.String("amount")
-							token := ctx.String("token")
-							name := ctx.String("name")
-							cid := ctx.String("cid")
-							group := ctx.String("group")
-							mime := ctx.String("mime")
-							cidPending := ctx.Bool("cidPending")
-							keyvaluesSlice := ctx.StringSlice("keyvalues")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							amount := cmd.String("amount")
+							token := cmd.String("token")
+							name := cmd.String("name")
+							cid := cmd.String("cid")
+							group := cmd.String("group")
+							mime := cmd.String("mime")
+							cidPending := cmd.Bool("cidPending")
+							keyvaluesSlice := cmd.StringSlice("keyvalues")
 							keyvalues := make(map[string]string)
-							network := ctx.String("network")
+							network := cmd.String("network")
 							for _, kv := range keyvaluesSlice {
 								parts := strings.SplitN(kv, "=", 2)
 								if len(parts) == 2 {
@@ -423,7 +424,7 @@ func main() {
 				Name:    "swaps",
 				Aliases: []string{"s"},
 				Usage:   "Interact and manage hot swaps on Pinata",
-				Subcommands: []*cli.Command{
+				Commands: []*cli.Command{
 					{
 						Name:      "list",
 						Aliases:   []string{"l"},
@@ -436,10 +437,10 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							cid := ctx.Args().First()
-							domain := ctx.Args().Get(1)
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							cid := cmd.Args().First()
+							domain := cmd.Args().Get(1)
+							network := cmd.String("network")
 							if cid == "" {
 								return errors.New("No CID provided")
 							}
@@ -459,10 +460,10 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							cid := ctx.Args().First()
-							swapCid := ctx.Args().Get(1)
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							cid := cmd.Args().First()
+							swapCid := cmd.Args().Get(1)
+							network := cmd.String("network")
 							if cid == "" {
 								return errors.New("No CID provided")
 							}
@@ -485,9 +486,9 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							cid := ctx.Args().First()
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							cid := cmd.Args().First()
+							network := cmd.String("network")
 							if cid == "" {
 								return errors.New("No CID provided")
 							}
@@ -501,14 +502,14 @@ func main() {
 				Name:    "gateways",
 				Aliases: []string{"gw"},
 				Usage:   "Interact with your gateways on Pinata",
-				Subcommands: []*cli.Command{
+				Commands: []*cli.Command{
 					{
 						Name:      "set",
 						Aliases:   []string{"s"},
 						Usage:     "Set your default gateway to be used by the CLI",
 						ArgsUsage: "[domain of the gateway]",
-						Action: func(ctx *cli.Context) error {
-							domain := ctx.Args().First()
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							domain := cmd.Args().First()
 							err := gateways.SetGateway(domain)
 							return err
 						},
@@ -525,9 +526,9 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							cid := ctx.Args().First()
-							network := ctx.String("network")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							cid := cmd.Args().First()
+							network := cmd.String("network")
 							if cid == "" {
 								return errors.New("No CID provided")
 							}
@@ -547,13 +548,13 @@ func main() {
 								Usage:   "Specify the network (public or private). Uses default if not specified",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							network := ctx.String("network")
-							cid := ctx.Args().First()
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							network := cmd.String("network")
+							cid := cmd.Args().First()
 							if cid == "" {
 								return errors.New("No CID provided")
 							}
-							expires := ctx.Args().Get(1)
+							expires := cmd.Args().Get(1)
 
 							if expires == "" {
 								expires = "30"
@@ -573,7 +574,7 @@ func main() {
 				Name:    "keys",
 				Aliases: []string{"k"},
 				Usage:   "Create and manage generated API keys",
-				Subcommands: []*cli.Command{
+				Commands: []*cli.Command{
 					{
 						Name:    "create",
 						Aliases: []string{"c"},
@@ -602,11 +603,11 @@ func main() {
 								Usage:   "Optional array of endpoints the key is allowed to use",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							name := ctx.String("name")
-							admin := ctx.Bool("admin")
-							uses := ctx.Int("uses")
-							endpoints := ctx.StringSlice("endpoints")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							name := cmd.String("name")
+							admin := cmd.Bool("admin")
+							uses := cmd.Int("uses")
+							endpoints := cmd.StringSlice("endpoints")
 							_, err := keys.CreateKey(name, admin, uses, endpoints)
 							return err
 						},
@@ -642,12 +643,12 @@ func main() {
 								Usage:   "Offset the number of results to paginate",
 							},
 						},
-						Action: func(ctx *cli.Context) error {
-							name := ctx.String("name")
-							offset := ctx.String("offset")
-							revoked := ctx.Bool("revoked")
-							uses := ctx.Bool("uses")
-							exhausted := ctx.Bool("exhausted")
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							name := cmd.String("name")
+							offset := cmd.String("offset")
+							revoked := cmd.Bool("revoked")
+							uses := cmd.Bool("uses")
+							exhausted := cmd.Bool("exhausted")
 							_, err := keys.ListKeys(name, revoked, uses, exhausted, offset)
 							return err
 						},
@@ -657,8 +658,8 @@ func main() {
 						Aliases:   []string{"r"},
 						Usage:     "Revoke an API key",
 						ArgsUsage: "[key]",
-						Action: func(ctx *cli.Context) error {
-							key := ctx.Args().First()
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							key := cmd.Args().First()
 							if key == "" {
 								return errors.New("No key provided")
 							}
@@ -672,14 +673,14 @@ func main() {
 				Name:    "config",
 				Aliases: []string{"cfg"},
 				Usage:   "Configure Pinata CLI settings",
-				Subcommands: []*cli.Command{
+				Commands: []*cli.Command{
 					{
 						Name:      "network",
 						Aliases:   []string{"net"},
 						Usage:     "Set default network (public or private)",
 						ArgsUsage: "[network]",
-						Action: func(ctx *cli.Context) error {
-							network := ctx.Args().First()
+						Action: func(ctx context.Context, cmd *cli.Command) error {
+							network := cmd.Args().First()
 							if network == "" {
 								// If no parameter, show current setting
 								current, err := config.GetDefaultNetwork()
@@ -698,12 +699,12 @@ func main() {
 				Name:    "agents",
 			Aliases: []string{"ag"},
 			Usage:   "Interact with AI agents on Pinata",
-			Subcommands: []*cli.Command{
+			Commands: []*cli.Command{
 				{
 					Name:    "list",
 					Aliases: []string{"l"},
 					Usage:   "List all agents",
-					Action: func(ctx *cli.Context) error {
+					Action: func(ctx context.Context, cmd *cli.Command) error {
 						_, err := agents.ListAgents()
 						return err
 					},
@@ -746,14 +747,14 @@ func main() {
 							Usage:   "Template ID to deploy from (uses template snapshot, skills, and defaults)",
 						},
 					},
-					Action: func(ctx *cli.Context) error {
-						name := ctx.String("name")
-						description := ctx.String("description")
-						vibe := ctx.String("vibe")
-						emoji := ctx.String("emoji")
-						skills := ctx.StringSlice("skill")
-						secrets := ctx.StringSlice("secret")
-						template := ctx.String("template")
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						name := cmd.String("name")
+						description := cmd.String("description")
+						vibe := cmd.String("vibe")
+						emoji := cmd.String("emoji")
+						skills := cmd.StringSlice("skill")
+						secrets := cmd.StringSlice("secret")
+						template := cmd.String("template")
 						_, err := agents.CreateAgent(name, description, vibe, emoji, template, skills, secrets)
 						return err
 					},
@@ -763,8 +764,8 @@ func main() {
 					Aliases:   []string{"g"},
 					Usage:     "Get agent details",
 					ArgsUsage: "[agent ID]",
-					Action: func(ctx *cli.Context) error {
-						agentID := ctx.Args().First()
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						agentID := cmd.Args().First()
 						if agentID == "" {
 							return errors.New("no agent ID provided")
 						}
@@ -777,8 +778,8 @@ func main() {
 					Aliases:   []string{"d"},
 					Usage:     "Delete an agent",
 					ArgsUsage: "[agent ID]",
-					Action: func(ctx *cli.Context) error {
-						agentID := ctx.Args().First()
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						agentID := cmd.Args().First()
 						if agentID == "" {
 							return errors.New("no agent ID provided")
 						}
@@ -790,8 +791,8 @@ func main() {
 					Aliases:   []string{"r"},
 					Usage:     "Restart an agent",
 					ArgsUsage: "[agent ID]",
-					Action: func(ctx *cli.Context) error {
-						agentID := ctx.Args().First()
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						agentID := cmd.Args().First()
 						if agentID == "" {
 							return errors.New("no agent ID provided")
 						}
@@ -803,8 +804,8 @@ func main() {
 					Name:      "logs",
 					Usage:     "Get agent logs",
 					ArgsUsage: "[agent ID]",
-					Action: func(ctx *cli.Context) error {
-						agentID := ctx.Args().First()
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						agentID := cmd.Args().First()
 						if agentID == "" {
 							return errors.New("no agent ID provided")
 						}
@@ -885,24 +886,24 @@ Examples:
 							Hidden: true,
 						},
 					},
-					Action: func(ctx *cli.Context) error {
-						agentID := ctx.Args().First()
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						agentID := cmd.Args().First()
 						if agentID == "" {
 							return errors.New("no agent ID provided")
 						}
-						gatewayURL := ctx.String("gateway")
-						token := ctx.String("token")
-						model := ctx.String("model")
-						jsonOutput := ctx.Bool("json")
-						textOutput := ctx.Bool("text")
-						conversationMode := ctx.Bool("conversation")
-						autoApprove := ctx.Bool("yes")
-						session := ctx.String("session")
+						gatewayURL := cmd.String("gateway")
+						token := cmd.String("token")
+						model := cmd.String("model")
+						jsonOutput := cmd.Bool("json")
+						textOutput := cmd.Bool("text")
+						conversationMode := cmd.Bool("conversation")
+						autoApprove := cmd.Bool("yes")
+						session := cmd.String("session")
 
 						// Get optional prompt from remaining args
 						prompt := ""
-						if ctx.Args().Len() > 1 {
-							prompt = strings.Join(ctx.Args().Slice()[1:], " ")
+						if cmd.Args().Len() > 1 {
+							prompt = strings.Join(cmd.Args().Slice()[1:], " ")
 						}
 
 						return chat.StartChat(agentID, gatewayURL, token, model, jsonOutput, textOutput, conversationMode, autoApprove, prompt, session)
@@ -918,10 +919,10 @@ Examples:
 							Usage: "Working directory for the command",
 						},
 					},
-					Action: func(ctx *cli.Context) error {
-						agentID := ctx.Args().First()
-						command := ctx.Args().Get(1)
-						cwd := ctx.String("cwd")
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						agentID := cmd.Args().First()
+						command := cmd.Args().Get(1)
+						cwd := cmd.String("cwd")
 						if agentID == "" {
 							return errors.New("no agent ID provided")
 						}
@@ -936,12 +937,12 @@ Examples:
 					Name:    "skills",
 					Aliases: []string{"sk"},
 					Usage:   "Manage agent skills",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:    "list",
 							Aliases: []string{"l"},
 							Usage:   "List available skills in library",
-							Action: func(ctx *cli.Context) error {
+							Action: func(ctx context.Context, cmd *cli.Command) error {
 								_, err := agents.ListSkills()
 								return err
 							},
@@ -976,12 +977,12 @@ Examples:
 									Usage: "Pinata v3 file ID",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								cid := ctx.String("cid")
-								name := ctx.String("name")
-								description := ctx.String("description")
-								envVars := ctx.StringSlice("env")
-								fileId := ctx.String("file-id")
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								cid := cmd.String("cid")
+								name := cmd.String("name")
+								description := cmd.String("description")
+								envVars := cmd.StringSlice("env")
+								fileId := cmd.String("file-id")
 								_, err := agents.CreateSkill(cid, name, description, envVars, fileId)
 								return err
 							},
@@ -991,8 +992,8 @@ Examples:
 							Aliases:   []string{"d"},
 							Usage:     "Delete a skill from library",
 							ArgsUsage: "[skill CID]",
-							Action: func(ctx *cli.Context) error {
-								skillCid := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								skillCid := cmd.Args().First()
 								if skillCid == "" {
 									return errors.New("no skill CID provided")
 								}
@@ -1004,12 +1005,12 @@ Examples:
 							Aliases:   []string{"a"},
 							Usage:     "Attach skills to an agent",
 							ArgsUsage: "[agent ID] [skill CID...]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
-								skillCids := ctx.Args().Tail()
+								skillCids := cmd.Args().Tail()
 								if len(skillCids) == 0 {
 									return errors.New("no skill CIDs provided")
 								}
@@ -1020,9 +1021,9 @@ Examples:
 							Name:      "detach",
 							Usage:     "Detach a skill from an agent",
 							ArgsUsage: "[agent ID] [skill ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								skillID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								skillID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1038,12 +1039,12 @@ Examples:
 					Name:    "secrets",
 					Aliases: []string{"sec"},
 					Usage:   "Manage secrets",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:    "list",
 							Aliases: []string{"l"},
 							Usage:   "List all secrets",
-							Action: func(ctx *cli.Context) error {
+							Action: func(ctx context.Context, cmd *cli.Command) error {
 								_, err := agents.ListSecrets()
 								return err
 							},
@@ -1066,9 +1067,9 @@ Examples:
 									Required: true,
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								name := ctx.String("name")
-								value := ctx.String("value")
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								name := cmd.String("name")
+								value := cmd.String("value")
 								_, err := agents.CreateSecret(name, value)
 								return err
 							},
@@ -1086,9 +1087,9 @@ Examples:
 									Required: true,
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								secretID := ctx.Args().First()
-								value := ctx.String("value")
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								secretID := cmd.Args().First()
+								value := cmd.String("value")
 								if secretID == "" {
 									return errors.New("no secret ID provided")
 								}
@@ -1100,8 +1101,8 @@ Examples:
 							Aliases:   []string{"d"},
 							Usage:     "Delete a secret",
 							ArgsUsage: "[secret ID]",
-							Action: func(ctx *cli.Context) error {
-								secretID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								secretID := cmd.Args().First()
 								if secretID == "" {
 									return errors.New("no secret ID provided")
 								}
@@ -1113,12 +1114,12 @@ Examples:
 							Aliases:   []string{"a"},
 							Usage:     "Attach secrets to an agent",
 							ArgsUsage: "[agent ID] [secret ID...]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
-								secretIds := ctx.Args().Tail()
+								secretIds := cmd.Args().Tail()
 								if len(secretIds) == 0 {
 									return errors.New("no secret IDs provided")
 								}
@@ -1129,9 +1130,9 @@ Examples:
 							Name:      "detach",
 							Usage:     "Detach a secret from an agent",
 							ArgsUsage: "[agent ID] [secret ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								secretID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								secretID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1147,14 +1148,14 @@ Examples:
 					Name:    "channels",
 					Aliases: []string{"ch"},
 					Usage:   "Manage agent channels",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:      "status",
 							Aliases:   []string{"s"},
 							Usage:     "Get channel configuration status",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1185,19 +1186,19 @@ Examples:
 									Usage: "Allowed user IDs/phone numbers",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								channel := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								channel := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
 								if channel == "" {
 									return errors.New("no channel provided (telegram, slack, discord, whatsapp)")
 								}
-								botToken := ctx.String("bot-token")
-								appToken := ctx.String("app-token")
-								dmPolicy := ctx.String("dm-policy")
-								allowFrom := ctx.StringSlice("allow-from")
+								botToken := cmd.String("bot-token")
+								appToken := cmd.String("app-token")
+								dmPolicy := cmd.String("dm-policy")
+								allowFrom := cmd.StringSlice("allow-from")
 								return agents.ConfigureChannel(agentID, channel, botToken, appToken, dmPolicy, allowFrom)
 							},
 						},
@@ -1206,9 +1207,9 @@ Examples:
 							Aliases:   []string{"r"},
 							Usage:     "Remove a channel configuration",
 							ArgsUsage: "[agent ID] [channel]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								channel := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								channel := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1224,14 +1225,14 @@ Examples:
 					Name:    "devices",
 					Aliases: []string{"dev"},
 					Usage:   "Manage agent devices",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:      "list",
 							Aliases:   []string{"l"},
 							Usage:     "List pending and paired devices",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1244,9 +1245,9 @@ Examples:
 							Aliases:   []string{"a"},
 							Usage:     "Approve a device pairing request",
 							ArgsUsage: "[agent ID] [request ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								requestID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								requestID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1260,8 +1261,8 @@ Examples:
 							Name:      "approve-all",
 							Usage:     "Approve all pending device requests",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1275,14 +1276,14 @@ Examples:
 					Name:    "snapshots",
 					Aliases: []string{"snap"},
 					Usage:   "Manage agent snapshots",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:      "list",
 							Aliases:   []string{"l"},
 							Usage:     "List agent snapshots",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1295,8 +1296,8 @@ Examples:
 							Aliases:   []string{"c"},
 							Usage:     "Create a snapshot",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1309,8 +1310,8 @@ Examples:
 							Aliases:   []string{"s"},
 							Usage:     "Get sync status",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1323,9 +1324,9 @@ Examples:
 							Aliases:   []string{"r"},
 							Usage:     "Reset to a snapshot",
 							ArgsUsage: "[agent ID] [snapshot CID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								snapshotCid := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								snapshotCid := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1342,7 +1343,7 @@ Examples:
 					Name:    "tasks",
 					Aliases: []string{"t"},
 					Usage:   "Manage agent cron jobs/tasks",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:      "list",
 							Aliases:   []string{"l"},
@@ -1354,12 +1355,12 @@ Examples:
 									Usage: "Include disabled tasks",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
-								includeDisabled := ctx.Bool("include-disabled")
+								includeDisabled := cmd.Bool("include-disabled")
 								_, err := agents.ListTasks(agentID, includeDisabled)
 								return err
 							},
@@ -1442,17 +1443,17 @@ Examples:
 									Value: "main",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
 
 								// Parse schedule
 								var schedule agents.TaskSchedule
-								atTime := ctx.String("at")
-								every := ctx.String("every")
-								cronExpr := ctx.String("cron")
+								atTime := cmd.String("at")
+								every := cmd.String("every")
+								cronExpr := cmd.String("cron")
 
 								scheduleCount := 0
 								if atTime != "" {
@@ -1488,14 +1489,14 @@ Examples:
 									schedule.Expr = cronExpr
 								}
 
-								if tz := ctx.String("tz"); tz != "" {
+								if tz := cmd.String("tz"); tz != "" {
 									schedule.Tz = tz
 								}
 
 								// Parse payload
 								var payload agents.TaskPayload
-								systemEvent := ctx.String("system-event")
-								agentTurn := ctx.String("agent-turn")
+								systemEvent := cmd.String("system-event")
+								agentTurn := cmd.String("agent-turn")
 
 								if systemEvent == "" && agentTurn == "" {
 									return errors.New("specify either --system-event or --agent-turn")
@@ -1512,22 +1513,22 @@ Examples:
 									payload.Message = agentTurn
 								}
 
-								if model := ctx.String("model"); model != "" {
+								if model := cmd.String("model"); model != "" {
 									payload.Model = model
 								}
-								if timeout := ctx.Int("timeout"); timeout > 0 {
+								if timeout := cmd.Int("timeout"); timeout > 0 {
 									payload.TimeoutSeconds = timeout
 								}
 
 								body := agents.CreateTaskBody{
-									Name:        ctx.String("name"),
-									Description: ctx.String("description"),
-									Enabled:     !ctx.Bool("disabled"),
+									Name:        cmd.String("name"),
+									Description: cmd.String("description"),
+									Enabled:     !cmd.Bool("disabled"),
 									Schedule:    schedule,
 									Payload:     payload,
 								}
 
-								if session := ctx.String("session"); session != "" {
+								if session := cmd.String("session"); session != "" {
 									if session == "main" {
 										body.SessionTarget = agents.SessionTargetMain
 									} else if session == "isolated" {
@@ -1598,9 +1599,9 @@ Examples:
 									Usage: "Timeout in seconds",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								jobID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								jobID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1610,17 +1611,17 @@ Examples:
 
 								body := agents.UpdateTaskBody{}
 
-								if name := ctx.String("name"); name != "" {
+								if name := cmd.String("name"); name != "" {
 									body.Name = name
 								}
-								if desc := ctx.String("description"); desc != "" {
+								if desc := cmd.String("description"); desc != "" {
 									body.Description = desc
 								}
 
 								// Parse schedule if any schedule flag is set
-								atTime := ctx.String("at")
-								every := ctx.String("every")
-								cronExpr := ctx.String("cron")
+								atTime := cmd.String("at")
+								every := cmd.String("every")
+								cronExpr := cmd.String("cron")
 
 								if atTime != "" || every != "" || cronExpr != "" {
 									schedule := &agents.TaskSchedule{}
@@ -1640,7 +1641,7 @@ Examples:
 										schedule.Expr = cronExpr
 									}
 
-									if tz := ctx.String("tz"); tz != "" {
+									if tz := cmd.String("tz"); tz != "" {
 										schedule.Tz = tz
 									}
 
@@ -1648,8 +1649,8 @@ Examples:
 								}
 
 								// Parse payload if any payload flag is set
-								systemEvent := ctx.String("system-event")
-								agentTurn := ctx.String("agent-turn")
+								systemEvent := cmd.String("system-event")
+								agentTurn := cmd.String("agent-turn")
 
 								if systemEvent != "" || agentTurn != "" {
 									payload := &agents.TaskPayload{}
@@ -1662,10 +1663,10 @@ Examples:
 										payload.Message = agentTurn
 									}
 
-									if model := ctx.String("model"); model != "" {
+									if model := cmd.String("model"); model != "" {
 										payload.Model = model
 									}
-									if timeout := ctx.Int("timeout"); timeout > 0 {
+									if timeout := cmd.Int("timeout"); timeout > 0 {
 										payload.TimeoutSeconds = timeout
 									}
 
@@ -1681,9 +1682,9 @@ Examples:
 							Aliases:   []string{"d"},
 							Usage:     "Delete a task",
 							ArgsUsage: "[agent ID] [job ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								jobID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								jobID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1707,17 +1708,17 @@ Examples:
 									Usage: "Disable the task",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								jobID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								jobID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
 								if jobID == "" {
 									return errors.New("no job ID provided")
 								}
-								enable := ctx.Bool("enable")
-								disable := ctx.Bool("disable")
+								enable := cmd.Bool("enable")
+								disable := cmd.Bool("disable")
 								if enable == disable {
 									return errors.New("specify either --enable or --disable")
 								}
@@ -1728,9 +1729,9 @@ Examples:
 							Name:      "run",
 							Usage:     "Run a task immediately",
 							ArgsUsage: "[agent ID] [job ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								jobID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								jobID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1751,16 +1752,16 @@ Examples:
 									Value: 10,
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								jobID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								jobID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
 								if jobID == "" {
 									return errors.New("no job ID provided")
 								}
-								limit := ctx.Int("limit")
+								limit := cmd.Int("limit")
 								_, err := agents.GetTaskHistory(agentID, jobID, limit)
 								return err
 							},
@@ -1771,14 +1772,14 @@ Examples:
 					Name:    "ports",
 					Aliases: []string{"p"},
 					Usage:   "Manage agent port forwarding",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:      "list",
 							Aliases:   []string{"l"},
 							Usage:     "List port forwarding rules",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1805,13 +1806,13 @@ Examples:
 
   # Clear all port forwarding rules
   pinata agents ports set <agent-id>`,
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
 								var mappings []agents.PortForwarding
-								for _, arg := range ctx.Args().Tail() {
+								for _, arg := range cmd.Args().Tail() {
 									parts := strings.SplitN(arg, ":", 2)
 									if len(parts) != 2 {
 										return fmt.Errorf("invalid port mapping: %s (expected port:pathPrefix)", arg)
@@ -1835,14 +1836,14 @@ Examples:
 					Name:    "domains",
 					Aliases: []string{"dom"},
 					Usage:   "Manage custom domains (beta)",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:      "list",
 							Aliases:   []string{"l"},
 							Usage:     "List custom domains",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1888,15 +1889,15 @@ Examples:
 									Usage: "Require authentication",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
-								subdomain := ctx.String("subdomain")
-								customDomain := ctx.String("domain")
-								port := ctx.Int("port")
-								protected := ctx.Bool("protected")
+								subdomain := cmd.String("subdomain")
+								customDomain := cmd.String("domain")
+								port := cmd.Int("port")
+								protected := cmd.Bool("protected")
 
 								if subdomain == "" && customDomain == "" {
 									return errors.New("specify either --subdomain or --domain")
@@ -1936,9 +1937,9 @@ Examples:
 									Usage: "Disable authentication",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								domainID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								domainID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1946,20 +1947,20 @@ Examples:
 									return errors.New("no domain ID provided")
 								}
 
-								subdomain := ctx.String("subdomain")
-								customDomain := ctx.String("domain")
+								subdomain := cmd.String("subdomain")
+								customDomain := cmd.String("domain")
 
 								var targetPort *int
-								if ctx.IsSet("port") {
-									p := ctx.Int("port")
+								if cmd.IsSet("port") {
+									p := cmd.Int("port")
 									targetPort = &p
 								}
 
 								var protected *bool
-								if ctx.IsSet("protected") {
+								if cmd.IsSet("protected") {
 									p := true
 									protected = &p
-								} else if ctx.IsSet("no-protected") {
+								} else if cmd.IsSet("no-protected") {
 									p := false
 									protected = &p
 								}
@@ -1973,9 +1974,9 @@ Examples:
 							Aliases:   []string{"d"},
 							Usage:     "Remove a custom domain",
 							ArgsUsage: "[agent ID] [domain ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								domainID := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								domainID := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -1991,15 +1992,15 @@ Examples:
 				{
 					Name:  "files",
 					Usage: "Agent file operations",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:      "read",
 							Aliases:   []string{"r"},
 							Usage:     "Read a file from agent container",
 							ArgsUsage: "[agent ID] [file path]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								filePath := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								filePath := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -2016,7 +2017,7 @@ Examples:
 					Name:    "templates",
 					Aliases: []string{"tpl"},
 					Usage:   "Browse and manage agent templates",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:    "list",
 							Aliases: []string{"l"},
@@ -2032,9 +2033,9 @@ Examples:
 									Usage: "Show only featured templates",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								category := ctx.String("category")
-								featured := ctx.Bool("featured")
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								category := cmd.String("category")
+								featured := cmd.Bool("featured")
 								_, err := agents.ListTemplates(category, featured)
 								return err
 							},
@@ -2044,8 +2045,8 @@ Examples:
 							Aliases:   []string{"g"},
 							Usage:     "Get template details by slug",
 							ArgsUsage: "[slug]",
-							Action: func(ctx *cli.Context) error {
-								slug := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								slug := cmd.Args().First()
 								if slug == "" {
 									return errors.New("no template slug provided")
 								}
@@ -2056,7 +2057,7 @@ Examples:
 						{
 							Name:  "mine",
 							Usage: "List templates you have submitted",
-							Action: func(ctx *cli.Context) error {
+							Action: func(ctx context.Context, cmd *cli.Command) error {
 								_, err := agents.ListTemplatesBySubmitter()
 								return err
 							},
@@ -2073,12 +2074,12 @@ Examples:
 									Usage:   "Branch to validate (default: main)",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								gitURL := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								gitURL := cmd.Args().First()
 								if gitURL == "" {
 									return errors.New("no git URL provided")
 								}
-								branch := ctx.String("branch")
+								branch := cmd.String("branch")
 								_, err := agents.ValidateTemplate(gitURL, branch)
 								return err
 							},
@@ -2095,12 +2096,12 @@ Examples:
 									Usage:   "Branch to submit from (default: main)",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								gitURL := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								gitURL := cmd.Args().First()
 								if gitURL == "" {
 									return errors.New("no git URL provided")
 								}
-								branch := ctx.String("branch")
+								branch := cmd.String("branch")
 								_, err := agents.SubmitTemplate(gitURL, branch)
 								return err
 							},
@@ -2121,13 +2122,13 @@ Examples:
 									Usage:   "Branch to pull from (default: main)",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								templateID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								templateID := cmd.Args().First()
 								if templateID == "" {
 									return errors.New("no template ID provided")
 								}
-								gitURL := ctx.String("git-url")
-								branch := ctx.String("branch")
+								gitURL := cmd.String("git-url")
+								branch := cmd.String("branch")
 								_, err := agents.UpdateTemplate(templateID, gitURL, branch)
 								return err
 							},
@@ -2137,8 +2138,8 @@ Examples:
 							Aliases:   []string{"d"},
 							Usage:     "Archive a template submission",
 							ArgsUsage: "[template ID]",
-							Action: func(ctx *cli.Context) error {
-								templateID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								templateID := cmd.Args().First()
 								if templateID == "" {
 									return errors.New("no template ID provided")
 								}
@@ -2150,8 +2151,8 @@ Examples:
 							Name:      "branches",
 							Usage:     "List branches for a git repository",
 							ArgsUsage: "[git URL]",
-							Action: func(ctx *cli.Context) error {
-								gitURL := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								gitURL := cmd.Args().First()
 								if gitURL == "" {
 									return errors.New("no git URL provided")
 								}
@@ -2165,7 +2166,7 @@ Examples:
 					Name:    "clawhub",
 					Aliases: []string{"hub"},
 					Usage:   "Browse and install skills from ClawHub",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:    "list",
 							Aliases: []string{"l"},
@@ -2190,11 +2191,11 @@ Examples:
 									Usage: "Pagination cursor",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								category := ctx.String("category")
-								sort := ctx.String("sort")
-								featured := ctx.Bool("featured")
-								cursor := ctx.String("cursor")
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								category := cmd.String("category")
+								sort := cmd.String("sort")
+								featured := cmd.Bool("featured")
+								cursor := cmd.String("cursor")
 								_, err := agents.ListHubSkills(category, sort, featured, cursor)
 								return err
 							},
@@ -2204,8 +2205,8 @@ Examples:
 							Aliases:   []string{"g"},
 							Usage:     "Get ClawHub skill details by slug",
 							ArgsUsage: "[slug]",
-							Action: func(ctx *cli.Context) error {
-								slug := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								slug := cmd.Args().First()
 								if slug == "" {
 									return errors.New("no skill slug provided")
 								}
@@ -2218,8 +2219,8 @@ Examples:
 							Aliases:   []string{"i"},
 							Usage:     "Install a ClawHub skill to your library",
 							ArgsUsage: "[hub-skill-id]",
-							Action: func(ctx *cli.Context) error {
-								hubSkillID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								hubSkillID := cmd.Args().First()
 								if hubSkillID == "" {
 									return errors.New("no hub skill ID provided")
 								}
@@ -2233,14 +2234,14 @@ Examples:
 					Name:    "config",
 					Aliases: []string{"cfg"},
 					Usage:   "Manage agent configuration",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:      "get",
 							Aliases:   []string{"g"},
 							Usage:     "Get agent openclaw config",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -2253,9 +2254,9 @@ Examples:
 							Aliases:   []string{"s"},
 							Usage:     "Set agent openclaw config (JSON)",
 							ArgsUsage: "[agent ID] [json config]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
-								configJSON := ctx.Args().Get(1)
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
+								configJSON := cmd.Args().Get(1)
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -2274,8 +2275,8 @@ Examples:
 							Aliases:   []string{"v"},
 							Usage:     "Validate agent openclaw config",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -2289,14 +2290,14 @@ Examples:
 					Name:    "update",
 					Aliases: []string{"up"},
 					Usage:   "Manage agent openclaw updates",
-					Subcommands: []*cli.Command{
+					Commands: []*cli.Command{
 						{
 							Name:      "check",
 							Aliases:   []string{"c"},
 							Usage:     "Check for openclaw updates",
 							ArgsUsage: "[agent ID]",
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
@@ -2315,12 +2316,12 @@ Examples:
 									Usage: "Specific version or tag to install (e.g., 'latest', '0.3.0', 'beta')",
 								},
 							},
-							Action: func(ctx *cli.Context) error {
-								agentID := ctx.Args().First()
+							Action: func(ctx context.Context, cmd *cli.Command) error {
+								agentID := cmd.Args().First()
 								if agentID == "" {
 									return errors.New("no agent ID provided")
 								}
-								tag := ctx.String("tag")
+								tag := cmd.String("tag")
 								_, err := agents.ApplyUpdate(agentID, tag)
 								return err
 							},
@@ -2332,8 +2333,8 @@ Examples:
 					Aliases:   []string{"ver"},
 					Usage:     "List available agent versions",
 					ArgsUsage: "[agent ID]",
-					Action: func(ctx *cli.Context) error {
-						agentID := ctx.Args().First()
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						agentID := cmd.Args().First()
 						if agentID == "" {
 							return errors.New("no agent ID provided")
 						}
@@ -2355,16 +2356,16 @@ Examples:
 						// 	Usage: "Store an Anthropic setup token instead of an API key (anthropic only)",
 						// },
 					},
-					Action: func(ctx *cli.Context) error {
-						provider := ctx.Args().First()
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						provider := cmd.Args().First()
 						switch provider {
 						case "anthropic":
-							// if ctx.Bool("setup-token") {
+							// if cmd.Bool("setup-token") {
 							// 	return agents.CredentialLogin("Anthropic setup token (run 'claude setup-token' to generate one)", "ANTHROPIC_SETUP_TOKEN")
 							// }
 							return agents.CredentialLogin("Anthropic API key", "ANTHROPIC_API_KEY")
 						case "openai":
-							if ctx.Bool("oauth") {
+							if cmd.Bool("oauth") {
 								_, err := agents.CodexOAuthLogin()
 								return err
 							}
@@ -2382,8 +2383,8 @@ Examples:
 					Name:      "feedback",
 					Usage:     "Submit feedback or feature request",
 					ArgsUsage: "[message]",
-					Action: func(ctx *cli.Context) error {
-						message := strings.Join(ctx.Args().Slice(), " ")
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						message := strings.Join(cmd.Args().Slice(), " ")
 						if message == "" {
 							return errors.New("no feedback message provided")
 						}
@@ -2395,7 +2396,7 @@ Examples:
 	},
 }
 
-	if err := app.Run(os.Args); err != nil {
+	if err := app.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
 	}
 }
