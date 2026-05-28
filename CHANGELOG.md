@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- Support Hermes (and superbuilder) agents: `agents create --engine <openclaw|hermes|superbuilder>`, plus `--user-name`/`--user-email` and `--channels` (JSON) for configuring channels at creation
+- Add `agents engines` to list the agent engines enabled for the deployment
+- Surface each agent's `engine` in `agents list`/`get`, and per-engine version data in `agents versions`
+- `agents channels configure`: add `--enabled` and `--skip-restart`
+- `agents tasks create`/`update`: add `--skill` to scope skills to a task
 - Add `agents templates refs` and `agents templates search-refs` to list/search branches and tags for a repo
 - Support submitting/updating templates from a subdirectory via `--path` (monorepos)
 - Support `--name`/`--slug` overrides when submitting templates
@@ -15,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - Allow flags to be passed after positional arguments (e.g. `files get <id> --network public`); previously such flags were silently ignored
 - Fix `agents templates update`/`submit`/`validate` for templates from a branch or subfolder: send the API's `ref` (with `path` for monorepos) instead of the removed `branch` field; `--branch`/`-b` remain as aliases for `--ref`
 - Surface server error messages (including validation errors) for the templates API instead of a generic "server returned status N"
+- `agents chat` now works with Hermes agents: Hermes sends assistant messages via `data.text` (whole message) instead of `data.delta` (streaming tokens), and the CLI was silently dropping anything without `delta`
 
 ### 🚜 Refactor
 

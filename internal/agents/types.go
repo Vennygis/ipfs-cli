@@ -1,6 +1,8 @@
 // Package agents provides type definitions for the Pinata Agents API.
 package agents
 
+import "encoding/json"
+
 // AgentStatus represents the possible statuses of an agent.
 type AgentStatus string
 
@@ -8,6 +10,15 @@ const (
 	AgentStatusStarting   AgentStatus = "starting"
 	AgentStatusRunning    AgentStatus = "running"
 	AgentStatusNotRunning AgentStatus = "not_running"
+)
+
+// AgentEngine is the container engine that runs an agent.
+type AgentEngine string
+
+const (
+	AgentEngineOpenClaw     AgentEngine = "openclaw"
+	AgentEngineHermes       AgentEngine = "hermes"
+	AgentEngineSuperbuilder AgentEngine = "superbuilder"
 )
 
 // Agent represents an AI agent in the system.
@@ -18,6 +29,7 @@ type Agent struct {
 	Description        *string `json:"description"`
 	Vibe               *string `json:"vibe"`
 	Emoji              *string `json:"emoji"`
+	Engine             *string `json:"engine"`
 	GatewayToken       string  `json:"gatewayToken"`
 	CreatedAt          string  `json:"createdAt"`
 	Status             string  `json:"status"`
@@ -29,13 +41,28 @@ type Agent struct {
 
 // CreateAgentBody is the request body for creating a new agent.
 type CreateAgentBody struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description,omitempty"`
-	Vibe        string   `json:"vibe,omitempty"`
-	Emoji       string   `json:"emoji,omitempty"`
-	SkillCids   []string `json:"skillCids,omitempty"`
-	SecretIds   []string `json:"secretIds,omitempty"`
-	TemplateID  string   `json:"templateId,omitempty"`
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	Vibe        string          `json:"vibe,omitempty"`
+	Emoji       string          `json:"emoji,omitempty"`
+	Engine      string          `json:"engine,omitempty"`
+	SkillCids   []string        `json:"skillCids,omitempty"`
+	SecretIds   []string        `json:"secretIds,omitempty"`
+	TemplateID  string          `json:"templateId,omitempty"`
+	UserName    string          `json:"userName,omitempty"`
+	UserEmail   string          `json:"userEmail,omitempty"`
+	Channels    json.RawMessage `json:"channels,omitempty"`
+}
+
+// EngineOption describes an agent engine the deployment supports.
+type EngineOption struct {
+	ID    string `json:"id"`
+	Label string `json:"label"`
+}
+
+// EnginesResponse is the response from listing available agent engines.
+type EnginesResponse struct {
+	Engines []EngineOption `json:"engines"`
 }
 
 // CreateAgentResponse is the response from creating a new agent.
@@ -79,14 +106,17 @@ type EnvVarDef struct {
 
 // Skill represents a skill in the library.
 type Skill struct {
-	SkillID     string      `json:"skillId"`
-	SkillCid    string      `json:"skillCid"`
-	Name        string      `json:"name"`
-	Description *string     `json:"description"`
-	CreatedAt   string      `json:"createdAt"`
-	UserID      string      `json:"userId"`
-	EnvVars     []EnvVarDef `json:"envVars"`
-	FileID      *string     `json:"fileId"`
+	SkillID       string      `json:"skillId"`
+	SkillCid      string      `json:"skillCid"`
+	Name          string      `json:"name"`
+	Description   *string     `json:"description"`
+	CreatedAt     string      `json:"createdAt"`
+	UserID        string      `json:"userId"`
+	EnvVars       []EnvVarDef `json:"envVars"`
+	FileID        *string     `json:"fileId"`
+	HubSlug       *string     `json:"hubSlug"`
+	LatestVersion string      `json:"latestVersion,omitempty"`
+	Verified      bool        `json:"verified,omitempty"`
 }
 
 // CreateSkillBody is the request body for creating a skill.
@@ -134,8 +164,10 @@ type AddSkillsBody struct {
 
 // AddSkillsResponse is the response from adding skills to an agent.
 type AddSkillsResponse struct {
-	Success  bool `json:"success"`
-	Attached int  `json:"attached"`
+	Success     bool     `json:"success"`
+	Attached    int      `json:"attached"`
+	FilesCopied int      `json:"filesCopied,omitempty"`
+	CopyErrors  []string `json:"copyErrors,omitempty"`
 }
 
 // --- Secrets ---
@@ -256,6 +288,7 @@ type ConfigureChannelBody struct {
 	AppToken  string   `json:"appToken,omitempty"`
 	DmPolicy  string   `json:"dmPolicy,omitempty"`
 	AllowFrom []string `json:"allowFrom,omitempty"`
+	Enabled   *bool    `json:"enabled,omitempty"`
 }
 
 // ConfigureChannelResponse is the response from configuring a channel.
@@ -494,6 +527,7 @@ type CreateTaskBody struct {
 	WakeMode      WakeMode      `json:"wakeMode,omitempty"`
 	Payload       TaskPayload   `json:"payload"`
 	Delivery      *TaskDelivery `json:"delivery,omitempty"`
+	Skills        []string      `json:"skills,omitempty"`
 }
 
 // UpdateTaskBody is the request body for updating a cron job.
@@ -504,6 +538,7 @@ type UpdateTaskBody struct {
 	Schedule    *TaskSchedule `json:"schedule,omitempty"`
 	Payload     *TaskPayload  `json:"payload,omitempty"`
 	Delivery    *TaskDelivery `json:"delivery,omitempty"`
+	Skills      []string      `json:"skills,omitempty"`
 }
 
 // ToggleTaskBody is the request body for toggling a cron job.
@@ -701,8 +736,19 @@ type UpdateApplyResponse struct {
 
 // VersionsResponse is the response from getting available agent versions.
 type VersionsResponse struct {
-	CurrentVersion    string   `json:"currentVersion"`
-	AvailableVersions []string `json:"availableVersions"`
+	CurrentVersion             *string                     `json:"currentVersion"`
+	Engine                     *string                     `json:"engine"`
+	AvailableVersions          []string                    `json:"availableVersions"`
+	AvailableVersionsPerEngine *AvailableVersionsPerEngine `json:"availableVersionsPerEngine,omitempty"`
+	PinclawAgentVersion        *float64                    `json:"pinclawAgentVersion,omitempty"`
+	CompatibilityMatrix        []interface{}               `json:"compatibilityMatrix,omitempty"`
+}
+
+// AvailableVersionsPerEngine lists available agent versions grouped by engine.
+type AvailableVersionsPerEngine struct {
+	Openclaw     []string `json:"openclaw"`
+	Hermes       []string `json:"hermes"`
+	Superbuilder []string `json:"superbuilder"`
 }
 
 // --- ClawHub (Skills Marketplace) ---
