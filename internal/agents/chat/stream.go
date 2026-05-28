@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"pinata/internal/config"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
@@ -125,8 +127,10 @@ type ChatEventPayload struct {
 }
 
 // BuildGatewayURL constructs the WebSocket URL for an agent's gateway.
+// The host suffix is derived from PINATA_AGENTS_HOST so dev envs reach
+// <agentID>.agents.devpinata.cloud instead of prod.
 func BuildGatewayURL(agentID string) string {
-	return fmt.Sprintf("wss://%s.agents.pinata.cloud", agentID)
+	return fmt.Sprintf("wss://%s.%s", agentID, config.GetAgentsHost())
 }
 
 // StreamChat connects to the agent's gateway via WebSocket and streams responses.
@@ -141,7 +145,7 @@ func StreamChat(ctx context.Context, agentID, token, model, session string, mess
 
 		// Connect to WebSocket with proper headers and timeout
 		header := http.Header{}
-		header.Set("Origin", "https://agents.pinata.cloud")
+		header.Set("Origin", "https://"+config.GetAgentsHost())
 		if token != "" {
 			header.Set("Authorization", "Bearer "+token)
 		}

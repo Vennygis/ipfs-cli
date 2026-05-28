@@ -6,8 +6,12 @@ import (
 	"path/filepath"
 )
 
-// FindToken extracts the JWT token from the .pinata-files-cli file
+// FindToken extracts the JWT token from the PINATA_JWT env var if set,
+// otherwise from the .pinata-files-cli file
 func FindToken() ([]byte, error) {
+	if jwt := os.Getenv("PINATA_JWT"); jwt != "" {
+		return []byte(jwt), nil
+	}
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
