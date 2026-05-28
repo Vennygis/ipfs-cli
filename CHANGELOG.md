@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.3.0] - 2026-05-28
 
 ### 🚀 Features
 
@@ -25,13 +25,6 @@ All notable changes to this project will be documented in this file.
 ### 🚜 Refactor
 
 - Upgrade `urfave/cli` from v2 to v3 (enables native interspersed flag parsing)
-
-## [0.3.0] - 2026-04-16
-
-### 🚀 Features
-
-- Add Venice AI provider support
-- Remove Anthropic setup token requirement
 
 ## [0.2.0] - 2026-03-20
 
