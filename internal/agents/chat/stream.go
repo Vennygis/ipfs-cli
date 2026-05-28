@@ -319,9 +319,13 @@ func StreamChat(ctx context.Context, agentID, token, model, session string, mess
 
 						switch payload.Stream {
 						case "assistant":
-							// Text delta
+							// Assistant text. OpenClaw streams token-by-token via
+							// `data.delta`; Hermes sends the full message in a
+							// single event via `data.text`. Handle both.
 							if delta, ok := payload.Data["delta"].(string); ok {
 								events <- StreamEvent{Type: StreamEventToken, Token: delta}
+							} else if text, ok := payload.Data["text"].(string); ok {
+								events <- StreamEvent{Type: StreamEventToken, Token: text}
 							}
 
 						case "tool":

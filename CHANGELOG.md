@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - Allow flags to be passed after positional arguments (e.g. `files get <id> --network public`); previously such flags were silently ignored
 - Fix `agents templates update`/`submit`/`validate` for templates from a branch or subfolder: send the API's `ref` (with `path` for monorepos) instead of the removed `branch` field; `--branch`/`-b` remain as aliases for `--ref`
 - Surface server error messages (including validation errors) for the templates API instead of a generic "server returned status N"
+- `agents chat` now works with Hermes agents: Hermes sends assistant messages via `data.text` (whole message) instead of `data.delta` (streaming tokens), and the CLI was silently dropping anything without `delta`
 
 ### 🚜 Refactor
 
